@@ -109,6 +109,7 @@ const renderSongs = (array) => {
   playlistSongs.innerHTML = songsHTML;
 };
 
+// Making sure songs are rendered in sorted order
 const sortSongs = () => {
   userData?.songs.sort((a, b) => {
     if (a.title < b.title) {
@@ -127,6 +128,10 @@ const sortSongs = () => {
 
 renderSongs(sortSongs());
 
+// Making play button descriptive for accessibility.
+const setPlayButtonAccessibleText = () => {};
+
+// Setting the current song to be played
 const playSong = (id) => {
   const song = userData?.songs.find((song) => song.id === id);
   audio.src = song.src;
@@ -138,13 +143,18 @@ const playSong = (id) => {
     audio.currentTime = userData?.songCurrentTime;
   }
   userData.currentSong = song;
-  playButton.classList.add('playing');
+
+  pauseButton.classList.remove('active');
+  playButton.classList.add('active');
 
   audio.play();
 
   highlightCurrentSong(song);
+
+  setPlayerDisplay();
 };
 
+// Playing song through button
 playButton.addEventListener('click', () => {
   if (userData?.currentSong === null) {
     playSong(userData?.songs[0].id);
@@ -153,17 +163,20 @@ playButton.addEventListener('click', () => {
   }
 });
 
-const getCurrentSongIndex = () =>
-  userData?.songs.indexOf(userData?.currentSong);
-
+// Pausing song
 const pauseSong = () => {
   userData.songCurrentTime = audio.currentTime;
-  playButton.classList.remove('playing');
+  playButton.classList.remove('active');
   audio.pause();
+  pauseButton.classList.add('active');
 };
 
 pauseButton.addEventListener('click', pauseSong);
 
+const getCurrentSongIndex = () =>
+  userData?.songs.indexOf(userData?.currentSong);
+
+// Going to next song
 const playNextSong = () => {
   if (userData?.currentSong === null) {
     playSong(userData?.songs[0].id);
@@ -178,6 +191,7 @@ const playNextSong = () => {
 
 nextButton.addEventListener('click', playNextSong);
 
+// Going to previous song
 const playPreviousSong = () => {
   if (userData?.currentSong === null) {
     return;
@@ -191,6 +205,20 @@ const playPreviousSong = () => {
 
 previousButton.addEventListener('click', playPreviousSong);
 
+// Setting the song being played up top
+const setPlayerDisplay = () => {
+  const playingSong = document.getElementById('player-song-title');
+  const songArtist = document.getElementById('player-song-artist');
+
+  const currentTitle = userData?.currentSong?.title;
+  const currentArtist = userData?.currentSong?.artist;
+
+  playingSong.textContent = currentTitle ?? '';
+
+  songArtist.textContent = currentArtist ?? '';
+};
+
+// Highlighting current song being played
 const highlightCurrentSong = (song) => {
   const playlistSongElements = document.querySelectorAll('.playlist-song');
   playlistSongElements.forEach((songEl) => {
