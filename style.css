@@ -151,7 +151,6 @@ button {
   color: var(--primary-color);
   cursor: pointer;
   font-size: var(--root-font-size);
-  outline-color: var(--highlight-color);
   text-align: center;
 }
 
@@ -167,6 +166,7 @@ button:focus,
 .playlist-song:focus {
   outline-style: dashed;
   outline-width: 2px;
+  outline-color: var(--highlight-color);
 }
 
 /* Playlist */
