@@ -172,6 +172,7 @@ playButton.addEventListener('click', () => {
 // Pausing song
 const pauseSong = () => {
   userData.songCurrentTime = audio.currentTime;
+  console.log(userData.songCurrentTime);
   playButton.classList.remove('active');
   audio.pause();
   pauseButton.classList.add('active');
@@ -179,6 +180,7 @@ const pauseSong = () => {
 
 pauseButton.addEventListener('click', pauseSong);
 
+// Get current song index
 const getCurrentSongIndex = () =>
   userData?.songs.indexOf(userData?.currentSong);
 
@@ -211,6 +213,24 @@ const playPreviousSong = () => {
 
 previousButton.addEventListener('click', playPreviousSong);
 
+// Move to next song after current song finishes
+audio.addEventListener('ended', () => {
+  const currentSongIndex = getCurrentSongIndex();
+  const nextSongExists = currentSongIndex + 1 < userData?.songs.length;
+  // const nextSongExists = userData?.songs[currentSongIndex + 1] !== undefined;
+
+  if (nextSongExists) {
+    playNextSong();
+  } else {
+    userData.currentSong = null;
+    userData.songCurrentTime = 0;
+    pauseSong();
+    setPlayerDisplay();
+    // highlightCurrentSong()
+    setPlayButtonAccessibleText();
+  }
+});
+
 // Setting the song being played up top
 const setPlayerDisplay = () => {
   const playingSong = document.getElementById('player-song-title');
@@ -226,6 +246,10 @@ const setPlayerDisplay = () => {
 
 // Highlighting current song being played
 const highlightCurrentSong = (song) => {
+  if (userData?.songs.length === 0) {
+    return;
+  }
+
   const playlistSongElements = document.querySelectorAll('.playlist-song');
   playlistSongElements.forEach((songEl) => {
     songEl.removeAttribute('aria-current');
@@ -251,7 +275,7 @@ const shuffle = () => {
 
 shuffleButton.addEventListener('click', shuffle);
 
-// Delete
+// Delete song
 const deleteSong = (id) => {
   if (userData?.currentSong?.id === id) {
     userData.currentSong = null;
@@ -260,12 +284,37 @@ const deleteSong = (id) => {
     setPlayerDisplay();
   }
 
+  const deletedIndex = userData.songs.findIndex((song) => song.id === id);
+  const deletedEl = userData?.songs[deletedIndex];
+  const lastEl = userData?.songs[userData?.songs.length - 1];
+
   userData.songs = userData?.songs.filter((song) => song.id !== id);
 
   renderSongs(userData?.songs);
-  highlightCurrentSong(userData?.currentSong);
+
   setPlayButtonAccessibleText();
 
   if (userData?.songs.length === 0) {
+    const resetButton = document.createElement('button');
+    const resetText = document.createTextNode('Reset Playlist');
+
+    resetButton.id = 'reset';
+    resetButton.ariaLabel = 'Reset playlist';
+
+    resetButton.appendChild(resetText);
+    playlistSongs.appendChild(resetButton);
+
+    resetButton.addEventListener('click', () => {
+      userData.songs = [...allSongs];
+      renderSongs(sortSongs());
+      setPlayButtonAccessibleText();
+      resetButton.remove();
+    });
   }
+
+  highlightCurrentSong(
+    deletedEl === lastEl
+      ? userData?.songs[deletedIndex - 1]
+      : userData?.songs[deletedIndex]
+  );
 };
